@@ -1,0 +1,172 @@
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Colorful Typing Practice and Time Tracker</title>
+</head>
+<body bgcolor="#1e1e24" text="#ffffff" link="#00f5d4" vlink="#00f5d4">
+
+    <center>
+        <br>
+        <h2><font face="Verdana" color="#00f5d4">⌨️ Typing Practice and Time Tracker</font></h2>
+    </center>
+    
+    <hr color="#00f5d4" width="90%">
+    <center>
+        <img src="D:\Users\sayan\Desktop\code\Touch Typing Finger Position Guide.jpg" width="70%">
+    </center>
+    <hr color="#00f5d4" width="90%">
+
+    <form id="typingForm" onsubmit="calculateResults(event)">
+        <center>
+        <script>
+            // Array of 10 customized practice texts
+            const sentences = [
+                // Fields 1 to 5: Standard A to Z practice
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+                
+                // Fields 6 to 10: 5 unique sentences containing every letter from A to Z using names/terms
+                "Jackdaws love my big sphinx of quartz.",
+                "The quick brown fox jumps over the lazy dog.",
+                "Pack my box with five dozen liquor jugs.",
+                "How vexingly quick daft zebras jump!",
+                "Bright vixens jump; dozy fowl quack."
+            ];
+
+            // Loop to generate the 10 structural input rows wrapped in colorful fonts
+            for(let i = 1; i <= 10; i++) {
+                document.write("<p>");
+                document.write("<b><font size='4' color='#ff007f'>Field Number - " + i + "</font></b><br><br>");
+                document.write("<i><font size='3' color='#ffbe0b'>Type this: " + sentences[i-1] + "</font></i><br><br>");
+                
+                // Styling input boxes purely with size and native HTML attributes
+                document.write("<input type='text' id='input-" + i + "' size='65' placeholder='Start typing here...' onkeydown='startTimer(" + i + ")' onkeypress='checkEnter(" + i + ", event)'><br><br>");
+                
+                document.write("<span id='status-" + i + "'><font color='#9b5de5'><small>Timer will start when begin typing...</small></font></span>");
+                document.write("</p><hr color='#33333d' width='80%'>");
+            }
+        </script>
+        </center>
+
+        <br>
+        <center>
+            <input type="submit" value="View Final Results (Submit)">
+        </center>
+    </form>
+
+    <br><br>
+    <hr color="#00f5d4" width="90%">
+    
+    <center>
+        <div id="result-section" hidden>
+            <table bgcolor="#2a2a35" width="75%" cellpadding="20" cellspacing="0" border="1" bordercolor="#00f5d4">
+                <tr>
+                    <td align="center">
+                        <h3><font color="#00f5d4">📊 Barsat Statistical Typing Report:</font></h3>
+                        <div id="individual-results" align="left"></div>
+                        <h4 id="total-result"></h4>
+                        <br>
+                        <!-- PDF Download Button -->
+                        <input type="button" value="📥 Download Report (.pdf)" onclick="downloadPDF()">
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </center>
+    <br><br>
+
+    <script>
+        let timerData = {};
+
+        // Starts tracking millisecond timestamp on first keystroke
+        function startTimer(id) {
+            if (!timerData[id]) {
+                timerData[id] = {
+                    startTime: performance.now(),
+                    endTime: null,
+                    elapsed: null,
+                    isStopped: false
+                };
+                document.getElementById("status-" + id).innerHTML = "<small><font color='#00bbf9'>⏱️ Timer running... Press Enter when finished.</font></small>";
+            }
+        }
+
+        // Detects 'Enter' key press to lock the field and log elapsed seconds
+        function checkEnter(id, event) {
+            if (event.key === "Enter") {
+                event.preventDefault(); // Prevents page reload
+                
+                if (timerData[id] && !timerData[id].isStopped) {
+                    timerData[id].endTime = performance.now();
+                    timerData[id].elapsed = ((timerData[id].endTime - timerData[id].startTime) / 1000).toFixed(2);
+                    timerData[id].isStopped = true;
+                    
+                    // Disables input field
+                    document.getElementById("input-" + id).disabled = true;
+                    document.getElementById("status-" + id).innerHTML = "<b><font color='#00f5d4'>✅ Completed! Time: " + timerData[id].elapsed + " seconds</font></b>";
+                }
+            }
+        }
+
+        // Compiles individual scores and absolute total duration
+        function calculateResults(event) {
+            event.preventDefault(); // Prevents default form processing
+            
+            let individualHTML = "<ol>";
+            let totalTime = 0;
+            let uncompletedCount = 0;
+
+            for (let i = 1; i <= 10; i++) {
+                if (!timerData[i] || !timerData[i].isStopped) {
+                    uncompletedCount++;
+                    individualHTML += "<li><b>Field #" + i + ":</b> <font color='#ff007f'>Incomplete (Enter key was not pressed)</font></li><br>";
+                } else {
+                    let timeSpent = parseFloat(timerData[i].elapsed);
+                    totalTime += timeSpent;
+                    individualHTML += "<li><b>Field #" + i + ":</b> <font color='#00f5d4'>" + timeSpent + " seconds</font></li><br>";
+                }
+            }
+            individualHTML += "</ol>";
+
+            // Unhide the table section and append dynamic data using HTML attributes
+            document.getElementById('result-section').removeAttribute('hidden');
+            document.getElementById('individual-results').innerHTML = individualHTML;
+            document.getElementById('total-result').innerHTML = "<font size='4' color='#ffbe0b'>⏱️ Total Elapsed Time: " + totalTime.toFixed(2) + " seconds</font>";
+            
+            if(uncompletedCount > 0) {
+                document.getElementById('total-result').innerHTML += "<br><br><small><font color='#ff007f'>* Notice: You skipped or forgot to press Enter on " + uncompletedCount + " field(s).</font></small>";
+            }
+            
+            // Auto scroll down to look at the scores nicely
+            document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Pure JS pop-up window based PDF print/save
+        function downloadPDF() {
+            let resultContent = document.getElementById("individual-results").innerHTML;
+            let totalContent = document.getElementById("total-result").innerHTML;
+
+            // Open a clean separate printable window
+            let printWindow = window.open("", "_blank", "width=800,height=600");
+            
+            printWindow.document.write("<html><head><title>Typing Practice Report</title></head><body>");
+            printWindow.document.write("<center><h2>Barsat Statistical Typing Report</h2></center><hr>");
+            printWindow.document.write(resultContent);
+            printWindow.document.write("<hr>");
+            printWindow.document.write(totalContent);
+            printWindow.document.write("</body></html>");
+            
+            printWindow.document.close();
+            printWindow.focus();
+            
+            // Triggers print dialog to save cleanly as PDF
+            printWindow.print();
+            printWindow.close();
+        }
+    </script>
+
+</body>
+</html>
